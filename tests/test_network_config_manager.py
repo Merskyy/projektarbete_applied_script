@@ -1,13 +1,17 @@
 from network_config_manager import NetworkConfigManager
+import pytest
 
 class Test_nw_config:
-    
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def setup_teardown(self):
         self.netinst = NetworkConfigManager()
         self.netinst.connect()
         self.netinst.update_hostname("1")
         self.netinst.update_interface_state("down")
         self.netinst.update_response_prefix("Standard Response")
+        yield
+        self.netinst.disconnect()
+
 
     def test_hostname_value(self):
         assert  self.netinst.show_hostname() == "hostname: 1"
@@ -30,5 +34,10 @@ class Test_nw_config:
         self.netinst.update_response_prefix("yes")
         assert self.netinst.show_response_prefix() == "response_prefix: yes"
     
-    def teardown_method(self):
-        self.netinst.disconnect()
+    def test_different_interface_state_input(self):
+        #self.netinst.update_interface_state("left")
+        with pytest.raises(ValueError):
+            self.netinst.update_interface_state("left")
+    
+    #def teardown_method(self):
+    #    self.netinst.disconnect()
